@@ -26,7 +26,7 @@ taxa_wilcox <- function(data,
     if (length(group_levels) != 2)
       stop("Wilcoxon test requires exactly 2 levels in ", factor_col)
     
-    tests <- lapply(data[, 13:ncol(data)], function(taxa) {
+    tests <- lapply(data[, 14:ncol(data)], function(taxa) {
       
       group1 <- taxa[grp == group_levels[1]]
       group2 <- taxa[grp == group_levels[2]]
@@ -36,7 +36,7 @@ taxa_wilcox <- function(data,
     
     data.frame(
       Comparison = rep(group_label, length(tests)),
-      taxa = colnames(data[, 13:ncol(data)]),
+      taxa = colnames(data[, 14:ncol(data)]),
       P_Value = sapply(tests, function(x) x$p.value)
     )
   }
