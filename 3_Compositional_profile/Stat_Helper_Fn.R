@@ -133,13 +133,13 @@ stat_kruskal <- function(data,
     Column_Number = sig_col_numbers
   ) %>%
     filter(!is.na(Column_Number))
-  
-  return(sig_col)
-  
-  
+
   # Export result
   Export(kruskal_summary, paste0("kruskal_", group_value, "_", rank_name, ".txt"))
   
+  # Return significant taxa
+  return(sig_col)
+
 }
 
 
