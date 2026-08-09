@@ -1,0 +1,761 @@
+############################################################
+# Beta Diversity Analysis (Gut Microbiota)
+############################################################
+#
+# This script evaluates differences in gut microbiota community
+# composition using phylogenetic and non-phylogenetic beta
+# diversity metrics.
+#
+# The workflow includes:
+#   1. Phylogenetic tree and data validation
+#   2. Within-ethnicity beta diversity analysis
+#   3. Distance matrix calculation
+#   4. PCoA ordination and visualization
+#   5. PERMANOVA testing
+#   6. Pairwise PERMANOVA support
+#   7. Beta dispersion assessment
+#
+# Distance metrics:
+#   - Unweighted UniFrac: phylogenetic, presence/absence-based
+#   - Weighted UniFrac: phylogenetic, abundance-weighted
+#   - Bray–Curtis: abundance-based, non-phylogenetic
+
+
+# -----------------------------------------------
+# Set working directory and load phyloseq object
+# -----------------------------------------------
+
+# Set the working directory for beta diversity analyses.
+setwd("~/Documents/HillTribe_NGS/2.Diversity")
+
+# Load the previously constructed phyloseq object and associated
+# objects saved from the phyloseq-building workflow.
+load("~/Documents/HillTribe_NGS/1.Raw_data/Building_phyloseq.RData")
+
+
+
+# ------------------------------
+# Load Required Packages
+# ------------------------------
+
+# Load packages required for microbiome data handling,
+# ecological distance calculations, phylogenetic analyses,
+# visualization, and plot arrangement.
+library(phyloseq)
+library(vegan)
+library(picante)
+library(ggplot2)
+
+
+# Install and load pairwiseAdonis for pairwise PERMANOVA analyses.
+# The package is installed directly from its GitHub repository.
+install.packages("remotes")
+remotes::install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
+library(pairwiseAdonis)
+
+library(gridExtra)
+
+
+
+# ------------------------------
+# Prepare Phyloseq Components
+# ------------------------------
+
+# Extract the main components of the rarefied phyloseq object
+# for subsequent beta diversity and phylogenetic analyses.
+otu_table   <- otu_table(ps_rare)
+tax_table   <- tax_table(ps_rare)
+sample_data <- sample_data(ps_rare)
+tree        <- phy_tree(ps_rare)
+
+
+# Create a combined group variable using ethnicity and study area.
+# Group labels are used to define the comparison groups in
+# downstream analyses.
+sample_data(ps_rare)$Group <- paste(
+  sample_data(ps_rare)$Ethnicity,
+  sample_data(ps_rare)$Area,
+  sep = "-"
+)
+
+
+# ------------------------------
+# Phylogenetic Tree Validation
+# ------------------------------
+
+# Confirm that the phylogenetic tree is rooted.
+is.rooted(tree)
+
+# Compare the number of taxa in the phyloseq object with the
+# number of tips in the phylogenetic tree.
+ntaxa(ps_rare)
+length(phy_tree(ps_rare)$tip.label)
+
+# Confirm that all taxa in the phyloseq object are represented
+# among the tree tips and that all tree tips correspond to taxa
+# in the phyloseq object.
+all(taxa_names(ps_rare) %in% phy_tree(ps_rare)$tip.label)
+all(phy_tree(ps_rare)$tip.label %in% taxa_names(ps_rare))
+
+# Inspect the dimensions of the tree edge matrix.
+dim(phy_tree(ps_rare)$edge)
+
+
+
+# ------------------------------------------------
+# 1. Within-Group Beta Diversity Analysis: Akha
+# ------------------------------------------------
+#
+# Objective:
+# Compare gut microbiota community composition between the
+# two study areas (CM vs CR) within the Akha group.
+#
+# Three distance metrics are evaluated to assess differences
+# from complementary perspectives:
+#   - Unweighted UniFrac
+#   - Weighted UniFrac
+#   - Bray–Curtis
+
+
+# ------------------------------
+# Subset Phyloseq Object
+# ------------------------------
+
+# Restrict the phyloseq object to Akha samples.
+#
+# Taxa with zero total abundance across all Akha samples are
+# removed using prune_taxa(). This removes features that are
+# completely absent from the subset while retaining taxa that
+# occur in at least one sample.
+#
+# Pruning is also important for phylogenetic distance analyses
+# because the feature table and phylogenetic tree must contain
+# the same set of taxa.
+ps_Akha <- ps_rare %>%
+  subset_samples(Ethnicity == "Akha") %>%
+  prune_taxa(taxa_sums(.) > 0, .) # -> Keep taxa present in at least one Akha sample
+
+
+
+# ------------------------------
+# Distance Matrix Calculation
+# ------------------------------
+
+# Calculate three complementary beta diversity distance matrices:
+#
+# Unweighted UniFrac:
+#   Measures phylogenetic differences based on taxon presence
+#   or absence.
+#
+# Weighted UniFrac:
+#   Measures phylogenetic differences while incorporating
+#   relative taxon abundance.
+#
+# Bray–Curtis:
+#   Measures differences in community composition based on
+#   taxon abundance without incorporating phylogenetic relationships.
+
+Akha_unw  <- distance(ps_Akha, method = "unifrac", weighted = FALSE)
+Akha_w    <- distance(ps_Akha, method = "unifrac", weighted = TRUE)
+Akha_bray <- distance(ps_Akha, method = "bray")
+
+
+
+# ------------------------------
+# Ordination: PCoA
+# ------------------------------
+
+# Perform Principal Coordinates Analysis (PCoA) using each
+# beta diversity distance matrix to visualize relationships
+# among samples in reduced-dimensional space.
+Akha_unw_pcoa  <- ordinate(ps_Akha, method = "PCoA", distance = Akha_unw)
+Akha_w_pcoa    <- ordinate(ps_Akha, method = "PCoA", distance = Akha_w)
+Akha_bray_pcoa <- ordinate(ps_Akha, method = "PCoA", distance = Akha_bray)
+
+
+
+# ------------------------------
+# Visualization: PCoA Plots
+# ------------------------------
+
+# Generate PCoA plots for each distance metric.
+#
+# Unweighted UniFrac
+p1 <- plot_pcoa_Akha(Akha_unw_pcoa, ps_Akha, "PCoA", "Unweighted UniFrac")
+p1
+
+# Weighted UniFrac
+p2 <- plot_pcoa_Akha(Akha_w_pcoa, ps_Akha, "PCoA", "Weighted UniFrac")
+p2
+
+# Bray–Curtis
+p3 <- plot_pcoa_Akha(Akha_bray_pcoa, ps_Akha, "PCoA", "Bray-Curtis")
+p3
+
+
+
+# ------------------------------------------------
+# PERMANOVA and Pairwise PERMANOVA
+# ------------------------------------------------
+#
+# PERMANOVA tests whether community composition differs
+# among the predefined groups based on each distance matrix.
+#
+# The grouping variable represents the two Akha study-area
+# groups: Akha-CM and Akha-CR.
+
+
+# Define the grouping variable and specify the desired
+# group order.
+grouping <- factor(
+  sample_data(ps_Akha)$Group,
+  levels = c("Akha-CM", "Akha-CR")
+)
+
+
+# Run PERMANOVA for each beta diversity distance matrix.
+run_permanova(Akha_unw,  "Unweighted UniFrac", grouping)
+run_permanova(Akha_w,    "Weighted UniFrac",   grouping)
+run_permanova(Akha_bray, "Bray-Curtis",        grouping)
+
+
+
+# ------------------------------------------------
+# Beta Dispersion Analysis
+# ------------------------------------------------
+#
+# Objective:
+# Assess the homogeneity of multivariate dispersion among groups.
+#
+# This analysis complements PERMANOVA because differences detected
+# by PERMANOVA can potentially reflect differences in within-group
+# dispersion rather than differences in group centroids.
+
+
+# Unweighted UniFrac
+d1 <- plot_betadisper_Akha(Akha_unw, grouping, "Unweighted UniFrac")
+d1
+
+# Weighted UniFrac
+d2 <- plot_betadisper_Akha(Akha_w, grouping, "Weighted UniFrac", sqrt = TRUE)
+d2
+
+# sqrt = TRUE:
+# Applies a square-root transformation to the distance matrix
+# before beta dispersion analysis. This can help reduce the
+# influence of negative eigenvalues when betadisper() is applied
+# to non-Euclidean distance matrices.
+
+# Bray–Curtis
+d3 <- plot_betadisper_Akha(Akha_bray, grouping, "Bray-Curtis")
+d3
+
+
+
+# ------------------------------------------------
+# Combined Visualization
+# ------------------------------------------------
+#
+# Arrange the PCoA plot and corresponding beta dispersion plot
+# side by side for each distance metric.
+
+grid.arrange(
+  p1, d1,
+  p2, d2,
+  p3, d3,
+  ncol = 2,
+  nrow = 3
+)
+
+
+
+
+
+
+
+# ------------------------------------------------
+# 2. Within-Group Beta Diversity Analysis: Lahu
+# ------------------------------------------------
+#
+# Objective:
+# Compare gut microbiota community composition between the
+# two study areas (CM vs CR) within the Lahu group.
+#
+# The analysis uses three complementary beta diversity metrics:
+#   - Unweighted UniFrac: phylogenetic, presence/absence-based
+#   - Weighted UniFrac: phylogenetic, abundance-weighted
+#   - Bray–Curtis: abundance-based, non-phylogenetic
+
+
+# ------------------------------
+# Subset Phyloseq Object
+# ------------------------------
+
+# Restrict the phyloseq object to Lahu samples.
+#
+# Taxa with zero total abundance across all Lahu samples are
+# removed using prune_taxa(). This retains only taxa present
+# in at least one Lahu sample and ensures consistency between
+# the feature table and phylogenetic tree for distance calculations.
+ps_Lahu <- ps_rare %>%
+  subset_samples(Ethnicity == "Lahu") %>%
+  prune_taxa(taxa_sums(.) > 0, .)
+
+
+# ------------------------------
+# Distance Matrix Calculation
+# ------------------------------
+
+# Calculate three complementary beta diversity distance matrices:
+#
+# Unweighted UniFrac:
+#   Measures phylogenetic differences based on taxon presence
+#   or absence.
+#
+# Weighted UniFrac:
+#   Measures phylogenetic differences while incorporating
+#   taxon abundance.
+#
+# Bray–Curtis:
+#   Measures differences in community composition based on
+#   taxon abundance without incorporating phylogenetic relationships.
+
+Lahu_unw  <- distance(ps_Lahu, method = "unifrac", weighted = FALSE)
+Lahu_w    <- distance(ps_Lahu, method = "unifrac", weighted = TRUE)
+Lahu_bray <- distance(ps_Lahu, method = "bray")
+
+
+
+# ------------------------------
+# Ordination: PCoA
+# ------------------------------
+
+# Perform Principal Coordinates Analysis (PCoA) using each
+# distance matrix to visualize differences in community
+# composition among Lahu samples.
+Lahu_unw_pcoa  <- ordinate(ps_Lahu, method = "PCoA", distance = Lahu_unw)
+Lahu_w_pcoa    <- ordinate(ps_Lahu, method = "PCoA", distance = Lahu_w)
+Lahu_bray_pcoa <- ordinate(ps_Lahu, method = "PCoA", distance = Lahu_bray)
+
+
+
+# ------------------------------
+# Visualization: PCoA Plots
+# ------------------------------
+
+# Generate a PCoA plot based on Unweighted UniFrac.
+p1 <- plot_pcoa_Lahu(Lahu_unw_pcoa, ps_Lahu, "PCoA", "Unweighted UniFrac")
+p1
+
+# Generate a PCoA plot based on Weighted UniFrac.
+p2 <- plot_pcoa_Lahu(Lahu_w_pcoa, ps_Lahu, "PCoA", "Weighted UniFrac")
+p2
+
+# Generate a PCoA plot based on Bray–Curtis.
+p3 <- plot_pcoa_Lahu(Lahu_bray_pcoa, ps_Lahu, "PCoA", "Bray-Curtis")
+p3
+
+
+
+# ------------------------------------------------
+# PERMANOVA and Pairwise PERMANOVA
+# ------------------------------------------------
+#
+# PERMANOVA tests whether overall community composition differs
+# between Lahu-CM and Lahu-CR based on each distance matrix.
+#
+# The grouping variable is explicitly ordered to ensure consistent
+# group labeling throughout the analysis.
+
+
+# Define the grouping variable for the two study areas.
+grouping <- factor(
+  sample_data(ps_Lahu)$Group,
+  levels = c("Lahu-CM", "Lahu-CR")
+)
+
+
+# Run PERMANOVA for each beta diversity distance matrix.
+run_permanova(Lahu_unw,  "Unweighted UniFrac", grouping)
+run_permanova(Lahu_w,    "Weighted UniFrac", grouping)
+run_permanova(Lahu_bray, "Bray-Curtis", grouping)
+
+
+
+# ------------------------------------------------
+# Beta Dispersion Analysis
+# ------------------------------------------------
+#
+# Objective:
+# Assess the homogeneity of multivariate dispersion between
+# Lahu-CM and Lahu-CR to support interpretation of the PERMANOVA
+# results.
+
+
+# Assess beta dispersion using Unweighted UniFrac.
+d1 <- plot_betadisper_Lahu(Lahu_unw, grouping, "Unweighted UniFrac")
+d1
+
+# Assess beta dispersion using Weighted UniFrac.
+d2 <- plot_betadisper_Lahu(Lahu_w, grouping, "Weighted UniFrac", sqrt = TRUE)
+d2
+
+# sqrt = TRUE:
+# Applies a square-root transformation to the distance matrix
+# before betadisper() analysis. This can help reduce the influence
+# of negative eigenvalues when analyzing non-Euclidean distances.
+
+# Assess beta dispersion using Bray–Curtis.
+d3 <- plot_betadisper_Lahu(Lahu_bray, grouping, "Bray-Curtis")
+d3
+
+
+
+# ------------------------------------------------
+# Combined Visualization
+# ------------------------------------------------
+#
+# Arrange the PCoA and corresponding beta dispersion plots
+# side by side for each distance metric.
+#
+# Left column  = PCoA
+# Right column = beta dispersion
+
+grid.arrange(
+  p1, d1,
+  p2, d2,
+  p3, d3,
+  ncol = 2,
+  nrow = 3
+)
+
+
+
+
+
+
+
+
+# ------------------------------------------------
+# 3. Between-Group Beta Diversity Analysis: CM
+# ------------------------------------------------
+#
+# Objective:
+# Compare gut microbiota community composition among the
+# hill tribe groups (Akha, Lahu, Lisu, and Khuen) within
+# the Chiang Mai (CM) study area.
+#
+# The analysis uses three complementary beta diversity metrics:
+#   - Unweighted UniFrac: phylogenetic, presence/absence-based
+#   - Weighted UniFrac: phylogenetic, abundance-weighted
+#   - Bray–Curtis: abundance-based, non-phylogenetic
+
+
+# ------------------------------
+# Subset Phyloseq Object
+# ------------------------------
+
+# Restrict the phyloseq object to samples from the CM study area.
+#
+# Taxa with zero total abundance across all CM samples are removed
+# to retain only features present in at least one sample and to
+# maintain consistency between the feature table and phylogenetic
+# tree for downstream distance calculations.
+ps_CM <- ps_rare %>%
+  subset_samples(Area == "CM") %>%
+  prune_taxa(taxa_sums(.) > 0, .)
+
+
+# ------------------------------
+# Distance Matrix Calculation
+# ------------------------------
+
+# Calculate three complementary beta diversity distance matrices.
+#
+# Unweighted UniFrac:
+#   Measures phylogenetic differences based on taxon presence
+#   or absence.
+#
+# Weighted UniFrac:
+#   Measures phylogenetic differences while incorporating
+#   taxon abundance.
+#
+# Bray–Curtis:
+#   Measures differences in community composition based on
+#   taxon abundance without incorporating phylogenetic relationships.
+
+CM_unw  <- distance(ps_CM, method = "unifrac", weighted = FALSE)
+CM_w    <- distance(ps_CM, method = "unifrac", weighted = TRUE)
+CM_bray <- distance(ps_CM, method = "bray")
+
+
+
+# ------------------------------
+# Ordination: PCoA
+# ------------------------------
+
+# Perform Principal Coordinates Analysis (PCoA) for each
+# beta diversity distance matrix to visualize differences
+# in community composition among samples.
+CM_unw_pcoa  <- ordinate(ps_CM, method = "PCoA", distance = CM_unw)
+CM_w_pcoa    <- ordinate(ps_CM, method = "PCoA", distance = CM_w)
+CM_bray_pcoa <- ordinate(ps_CM, method = "PCoA", distance = CM_bray)
+
+
+
+# ------------------------------
+# Visualization: PCoA Plots
+# ------------------------------
+
+# Generate a PCoA plot based on Unweighted UniFrac.
+p1 <- plot_pcoa_CM(CM_unw_pcoa, ps_CM, "PCoA", "Unweighted UniFrac")
+p1
+
+# Generate a PCoA plot based on Weighted UniFrac.
+p2 <- plot_pcoa_CM(CM_w_pcoa, ps_CM, "PCoA", "Weighted UniFrac")
+p2
+
+# Generate a PCoA plot based on Bray–Curtis.
+p3 <- plot_pcoa_CM(CM_bray_pcoa, ps_CM, "PCoA", "Bray-Curtis")
+p3
+
+
+
+# ------------------------------------------------
+# PERMANOVA and Pairwise PERMANOVA
+# ------------------------------------------------
+#
+# PERMANOVA tests whether overall community composition
+# differs among the four hill tribe groups within CM.
+#
+# The grouping factor is explicitly ordered to ensure
+# consistent group labeling across analyses and visualizations.
+
+
+# Define the grouping variable for the four CM groups.
+grouping <- factor(
+  sample_data(ps_CM)$Group,
+  levels = c("Akha-CM", "Lahu-CM", "Lisu-CM", "Khuen-CM")
+)
+
+
+
+# Run PERMANOVA for each beta diversity distance matrix.
+run_permanova(CM_unw,  "Unweighted UniFrac", grouping)
+run_permanova(CM_w,    "Weighted UniFrac",   grouping)
+run_permanova(CM_bray, "Bray-Curtis",        grouping)
+
+
+
+# ------------------------------------------------
+# Beta Dispersion Analysis
+# ------------------------------------------------
+#
+# Objective:
+# Assess the homogeneity of multivariate dispersion among
+# the four hill tribe groups to support interpretation of
+# the PERMANOVA results.
+
+
+# Assess beta dispersion using Unweighted UniFrac.
+d1 <- plot_betadisper_CM(CM_unw, grouping, "Unweighted UniFrac")
+d1
+
+
+# Assess beta dispersion using Weighted UniFrac.
+d2 <- plot_betadisper_CM(
+  CM_w, grouping, "Weighted UniFrac", sqrt = TRUE)
+d2
+
+# sqrt = TRUE:
+# Applies a square-root transformation to the distance matrix
+# before betadisper() analysis. This can help reduce the influence
+# of negative eigenvalues when analyzing non-Euclidean distances.
+
+# Assess beta dispersion using Bray–Curtis.
+d3 <- plot_betadisper_CM(CM_bray, grouping, "Bray-Curtis")
+d3
+
+
+
+# ------------------------------------------------
+# Combined Visualization
+# ------------------------------------------------
+#
+# Arrange the PCoA and corresponding beta dispersion plots
+# side by side for each distance metric.
+#
+# Left column  = PCoA
+# Right column = beta dispersion
+
+grid.arrange(
+  p1, d1,
+  p2, d2,
+  p3, d3,
+  ncol = 2,
+  nrow = 3
+)
+
+
+
+
+
+
+
+
+# ------------------------------------------------
+# 4. Between-Group Beta Diversity Analysis: CR
+# ------------------------------------------------
+#
+# Objective:
+# Compare gut microbiota community composition among the
+# hill tribe groups (Akha, Lahu, Lisu, and Khuen) within
+# the Chiang Rai (CR) study area.
+#
+# The analysis uses three complementary beta diversity metrics:
+#   - Unweighted UniFrac: phylogenetic, presence/absence-based
+#   - Weighted UniFrac: phylogenetic, abundance-weighted
+#   - Bray–Curtis: abundance-based, non-phylogenetic
+
+
+# ------------------------------
+# Subset Phyloseq Object
+# ------------------------------
+
+# Restrict the phyloseq object to samples from the CR study area.
+#
+# Taxa with zero total abundance across all CR samples are removed
+# to retain only features present in at least one sample and to
+# maintain consistency between the feature table and phylogenetic
+# tree for downstream distance calculations.
+ps_CR <- ps_rare %>%
+  subset_samples(Area == "CR") %>%
+  prune_taxa(taxa_sums(.) > 0, .)
+
+
+# ------------------------------
+# Distance Matrix Calculation
+# ------------------------------
+
+# Calculate three complementary beta diversity distance matrices.
+#
+# Unweighted UniFrac:
+#   Measures phylogenetic differences based on taxon presence
+#   or absence.
+#
+# Weighted UniFrac:
+#   Measures phylogenetic differences while incorporating
+#   taxon abundance.
+#
+# Bray–Curtis:
+#   Measures differences in community composition based on
+#   taxon abundance without incorporating phylogenetic relationships.
+
+CR_unw  <- distance(ps_CR, method = "unifrac", weighted = FALSE)
+CR_w    <- distance(ps_CR, method = "unifrac", weighted = TRUE)
+CR_bray <- distance(ps_CR, method = "bray")
+
+
+
+# ------------------------------
+# Ordination: PCoA
+# ------------------------------
+
+# Perform Principal Coordinates Analysis (PCoA) for each
+# beta diversity distance matrix to visualize differences
+# in community composition among samples.
+CR_unw_pcoa  <- ordinate(ps_CR, method = "PCoA", distance = CR_unw)
+CR_w_pcoa    <- ordinate(ps_CR, method = "PCoA", distance = CR_w)
+CR_bray_pcoa <- ordinate(ps_CR, method = "PCoA", distance = CR_bray)
+
+
+
+# ------------------------------
+# Visualization: PCoA Plots
+# ------------------------------
+
+# Generate a PCoA plot based on Unweighted UniFrac.
+p1 <- plot_pcoa_CR(CR_unw_pcoa, ps_CR, "PCoA", "Unweighted UniFrac")
+p1
+
+# Generate a PCoA plot based on Weighted UniFrac.
+p2 <- plot_pcoa_CR(CR_w_pcoa, ps_CR, "PCoA", "Weighted UniFrac")
+p2
+
+# Generate a PCoA plot based on Bray–Curtis.
+p3 <- plot_pcoa_CR(CR_bray_pcoa, ps_CR, "PCoA", "Bray-Curtis")
+p3
+
+
+
+# ------------------------------------------------
+# PERMANOVA and Pairwise PERMANOVA
+# ------------------------------------------------
+#
+# PERMANOVA tests whether overall community composition
+# differs among the four hill tribe groups within CR.
+#
+# The grouping factor is explicitly ordered to ensure
+# consistent group labeling across analyses and visualizations.
+
+
+# Define the grouping variable for the four CR groups.
+grouping <- factor(
+  sample_data(ps_CR)$Group,
+  levels = c("Akha-CR", "Lahu-CR", "Lisu-CR", "Khuen-CR")
+)
+
+
+# Run PERMANOVA for each beta diversity distance matrix.
+run_permanova(CR_unw,  "Unweighted UniFrac", grouping)
+run_permanova(CR_w,    "Weighted UniFrac",   grouping)
+run_permanova(CR_bray, "Bray-Curtis",        grouping)
+
+
+
+# ------------------------------------------------
+# Beta Dispersion Analysis
+# ------------------------------------------------
+#
+# Objective:
+# Assess the homogeneity of multivariate dispersion among
+# the four hill tribe groups to support interpretation of
+# the PERMANOVA results.
+
+
+# Assess beta dispersion using Unweighted UniFrac.
+d1 <- plot_betadisper_CR(CR_unw, grouping, "Unweighted UniFrac")
+d1
+
+# Assess beta dispersion using Weighted UniFrac.
+d2 <- plot_betadisper_CR(CR_w, grouping, "Weighted UniFrac", sqrt = TRUE)
+d2
+
+# sqrt = TRUE:
+# Applies a square-root transformation to the distance matrix
+# before betadisper() analysis. This can help reduce the influence
+# of negative eigenvalues when analyzing non-Euclidean distances.
+
+# Assess beta dispersion using Bray–Curtis.
+d3 <- plot_betadisper_CR(CR_bray, grouping, "Bray-Curtis")
+d3
+
+
+
+# ------------------------------------------------
+# Combined Visualization
+# ------------------------------------------------
+#
+# Arrange the PCoA and corresponding beta dispersion plots
+# side by side for each distance metric.
+#
+# Left column  = PCoA
+# Right column = beta dispersion
+
+grid.arrange(
+  p1, d1,
+  p2, d2,
+  p3, d3,
+  ncol = 2,
+  nrow = 3
+)
