@@ -857,7 +857,7 @@ Export(key_Akha_cossim, "key_Akha_cossim.txt")
 
 
 
-
+####### The same analytical workflows were applied to the Lahu, CM, and CR groups. ########
 
 
 # ==========================================================
