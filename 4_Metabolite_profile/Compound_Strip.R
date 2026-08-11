@@ -118,3 +118,24 @@ cleanlist3 <- df_clean[701:nrow(df_clean), 2]
 Export(cleanlist1, "cleanlist_1.txt")
 Export(cleanlist2, "cleanlist_2.txt")
 Export(cleanlist3, "cleanlist_3.txt")
+
+
+
+# --------------------------------------------------
+# Notes:
+# --------------------------------------------------
+#
+# After obtaining InChIKeys from PubChem mapping, paste
+# the InChIKeys into the FiehnLab Chemical Classification
+# tool to retrieve compound classification information.
+#
+# FiehnLab:
+# https://cfb.fiehnlab.ucdavis.edu
+#
+# The resulting classification information can be used to
+# assign chemical classes to the identified metabolites for
+# downstream metabolite profile analysis.
+
+
+
+
