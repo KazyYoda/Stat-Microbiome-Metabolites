@@ -984,7 +984,9 @@ CR_dunn <- dunnTest_metabo(krus_pvalue_descp,
                            tag = "metabo_CR")
 
 
-# DunnT Work Flow.
+
+    
+# Dunn's Test Work Flow.
 Dunn results
      │
      ▼
