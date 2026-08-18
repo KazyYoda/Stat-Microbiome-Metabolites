@@ -1,0 +1,133 @@
+# Activate myenv
+conda activate myenv
+
+
+#---- HAllA Genus+Funtion ----
+cd ~/Documents/HillTribe_NGS/4.Functional_profile/HAllA_Genus_Function/Geo
+
+
+# Geographic location
+
+#------ PW --------
+# Akha-CM
+halla -x feature_Genus_Akha-CM_Geo.txt -y feature_PW_Akha-CM_Geo.txt -o PW_Genus_Akha_CM_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Akha-CR
+halla -x feature_Genus_Akha-CR_Geo.txt -y feature_PW_Akha-CR_Geo.txt -o PW_Genus_Akha_CR_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CM
+halla -x feature_Genus_Lahu-CM_Geo.txt -y feature_PW_Lahu-CM_Geo.txt -o PW_Genus_Lahu_CM_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CR
+halla -x feature_Genus_Lahu-CR_Geo.txt -y feature_PW_Lahu-CR_Geo.txt -o PW_Genus_Lahu_CR_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+
+
+#------ EC --------
+# Akha-CM
+halla -x feature_Genus_Akha-CM_Geo.txt -y feature_EC_Akha-CM_Geo.txt -o EC_Genus_Akha_CM_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Akha-CR
+halla -x feature_Genus_Akha-CR_Geo.txt -y feature_EC_Akha-CR_Geo.txt -o EC_Genus_Akha_CR_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CM
+halla -x feature_Genus_Lahu-CM_Geo.txt -y feature_EC_Lahu-CM_Geo.txt -o EC_Genus_Lahu_CM_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CR
+halla -x feature_Genus_Lahu-CR_Geo.txt -y feature_EC_Lahu-CR_Geo.txt -o EC_Genus_Lahu_CR_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+
+
+#------ KO --------
+# Akha-CM
+halla -x feature_Genus_Akha-CM_Geo.txt -y feature_KO_Akha-CM_Geo.txt -o KO_Genus_Akha_CM_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Akha-CR
+halla -x feature_Genus_Akha-CR_Geo.txt -y feature_KO_Akha-CR_Geo.txt -o KO_Genus_Akha_CR_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CM
+halla -x feature_Genus_Lahu-CM_Geo.txt -y feature_KO_Lahu-CM_Geo.txt -o KO_Genus_Lahu_CM_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CR
+halla -x feature_Genus_Lahu-CR_Geo.txt -y feature_KO_Lahu-CR_Geo.txt -o KO_Genus_Lahu_CR_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+
+
+
+
+# Etnicity
+
+cd ~/Documents/HillTribe_NGS/4.Functional_profile/HAllA_Genus_Function/Eth
+
+#------ PW --------
+# Akha-CM
+halla -x feature_Genus_Akha-CM_Eth.txt -y feature_PW_Akha-CM_Eth.txt -o PW_Genus_Akha_CM_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CM
+halla -x feature_Genus_Lahu-CM_Eth.txt -y feature_PW_Lahu-CM_Eth.txt -o PW_Genus_Lahu_CM_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Khuen-CM
+halla -x feature_Genus_Khuen-CM_Eth.txt -y feature_PW_Khuen-CM_Eth.txt -o PW_Genus_Khuen_CM_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+
+# Akha-CR
+halla -x feature_Genus_Akha-CR_Eth.txt -y feature_PW_Akha-CR_Eth.txt -o PW_Genus_Akha_CR_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CR
+halla -x feature_Genus_Lahu-CR_Eth.txt -y feature_PW_Lahu-CR_Eth.txt -o PW_Genus_Lahu_CR_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lisu-CR
+halla -x feature_Genus_Lisu-CR_Eth.txt -y feature_PW_Lisu-CR_Eth.txt -o PW_Genus_Lisu_CR_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+
+
+
+#------ EC --------
+# Akha-CM
+halla -x feature_Genus_Akha-CM_Eth.txt -y feature_EC_Akha-CM_Eth.txt -o EC_Genus_Akha_CM_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CM
+halla -x feature_Genus_Lahu-CM_Eth.txt -y feature_EC_Lahu-CM_Eth.txt -o EC_Genus_Lahu_CM_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Khuen-CM
+halla -x feature_Genus_Khuen-CM_Eth.txt -y feature_EC_Khuen-CM_Eth.txt -o EC_Genus_Khuen_CM_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+
+
+# Akha-CR
+halla -x feature_Genus_Akha-CR_Eth.txt -y feature_EC_Akha-CR_Eth.txt -o EC_Genus_Akha_CR_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CR
+halla -x feature_Genus_Lahu-CR_Eth.txt -y feature_EC_Lahu-CR_Eth.txt -o EC_Genus_Lahu_CR_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lisu-CR
+halla -x feature_Genus_Lisu-CR_Eth.txt -y feature_EC_Lisu-CR_Eth.txt -o EC_Genus_Lisu_CR_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+
+
+
+#------ KO --------
+# Akha-CM
+halla -x feature_Genus_Akha-CM_Eth.txt -y feature_KO_Akha-CM_Eth.txt -o KO_Genus_Akha_CM_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CM
+halla -x feature_Genus_Lahu-CM_Eth.txt -y feature_KO_Lahu-CM_Eth.txt -o KO_Genus_Lahu_CM_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Khuen-CM
+halla -x feature_Genus_Khuen-CM_Eth.txt -y feature_KO_Khuen-CM_Eth.txt -o KO_Genus_Khuen_CM_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+
+
+# Akha-CR
+halla -x feature_Genus_Akha-CR_Eth.txt -y feature_KO_Akha-CR_Eth.txt -o KO_Genus_Akha_CR_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+
+# Lahu-CR
+halla -x feature_Genus_Lahu-CR_Eth.txt -y feature_KO_Lahu-CR_Eth.txt -o KO_Genus_Lahu_CR_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lisu-CR
+halla -x feature_Genus_Lisu-CR_Eth.txt -y feature_KO_Lisu-CR_Eth.txt -o KO_Genus_Lisu_CR_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+
+
+
