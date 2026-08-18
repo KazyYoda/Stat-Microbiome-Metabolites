@@ -10,7 +10,7 @@ HAllA supports multiple association measures, including Spearman correlation, Pe
 
 For the official HAllA documentation and installation instructions, please refer to:
 
-Huttenhower Lab: HAllA
+Huttenhower Lab: HAllA (https://huttenhower.sph.harvard.edu/halla/)
 
 ⸻
 
