@@ -1,0 +1,44 @@
+# Activate myenv
+conda activate myenv
+
+
+#---- HAllA Metabolite+Genus ----
+
+cd ~/Documents/HillTribe_NGS/4.Functional_profile/HAllA_Metabolite_Genus
+
+
+## HAllA Geographic location
+# Akha-CM
+halla -x feature_Metabolite_Akha-CM_Geo.txt -y feature_Genus_Akha-CM_Geo.txt -o MetGenus_Akha_CM_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Akha-CR
+halla -x feature_Metabolite_Akha-CR_Geo.txt -y feature_Genus_Akha-CR_Geo.txt -o MetGenus_Akha_CR_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CM
+halla -x feature_Metabolite_Lahu-CM_Geo.txt -y feature_Genus_Lahu-CM_Geo.txt -o MetGenus_Lahu_CM_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CR
+halla -x feature_Metabolite_Lahu-CR_Geo.txt -y feature_Genus_Lahu-CR_Geo.txt -o MetGenus_Lahu_CR_output_Geo -m spearman --fdr_alpha 0.05 --no_hallagram
+
+
+
+
+
+## HAllA Ethnicity
+# Akha-CM 
+halla -x feature_Metabolite_Akha-CM_Eth.txt -y feature_Genus_Akha-CM_Eth.txt -o MetGenus_Akha_CM_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Akha-CR
+halla -x feature_Metabolite_Akha-CR_Eth.txt -y feature_Genus_Akha-CR_Eth.txt -o MetGenus_Akha_CR_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CM
+halla -x feature_Metabolite_Lahu-CM_Eth.txt -y feature_Genus_Lahu-CM_Eth.txt -o MetGenus_Lahu_CM_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lahu-CR
+halla -x feature_Metabolite_Lahu-CR_Eth.txt -y feature_Genus_Lahu-CR_Eth.txt -o MetGenus_Lahu_CR_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Lisu-CR
+halla -x feature_Metabolite_Lisu-CR_Eth.txt -y feature_Genus_Lisu-CR_Eth.txt -o MetGenus_Lisu_CR_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
+
+# Khuen-CM
+halla -x feature_Metabolite_Khuen-CM_Eth.txt -y feature_Genus_Khuen-CM_Eth.txt -o MetGenus_Khuen_CM_output_Eth -m spearman --fdr_alpha 0.05 --no_hallagram
