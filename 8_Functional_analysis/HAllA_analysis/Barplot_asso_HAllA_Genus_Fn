@@ -1,0 +1,201 @@
+setwd("~/Documents/HillTribe_NGS/4.Functional_profile/HAllA_Genus_Function")
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+Association_structure_1 <- read_excel("~/Documents/HillTribe_NGS/4.Functional_profile/HAllA_Genus_Function/Association structure_1.xlsx")
+Association_structure_2 <- read_excel("~/Documents/HillTribe_NGS/4.Functional_profile/HAllA_Genus_Function/Association structure_2.xlsx")
+
+
+
+
+group_colors <- c(
+  "Akha-CM" = "gold1",
+  "Lahu-CM" = "lightblue2",
+  "Khuen-CM" = "darkorange",
+  "Akha-CR" = "dodgerblue4",
+  "Lahu-CR" = "coral1",
+  "Lisu-CR" = "grey40"
+)
+
+
+
+Association_longGeo <- Association_structure_1 %>%
+  filter(Factor == "Geographic location") %>%
+  pivot_longer(
+    cols = c(Total, Unique),
+    names_to = "Metric",
+    values_to = "Value"
+  )
+
+
+p1 <- Association_longGeo %>%
+  mutate(
+    Group = factor(Group, levels = names(group_colors)),
+    Function = factor(Function, levels = c("PW", "EC", "KO"))
+  ) %>%
+  ggplot(aes(x = Value, y = Group, fill = Group)) +
+  
+  geom_col(width = 0.7) +
+  
+  facet_grid(Function ~ Metric+Factor, scales = "free_x") +
+  
+  scale_fill_manual(values = group_colors) +
+  
+  labs(
+    x = "Number of associations",
+    y = NULL,
+    title = "Genus–function (HAllA) association structure\nTotal vs unique significant associations (|ρ| ≥ 0.8, q < 0.05)"  ) +
+  
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(face = "bold"),
+    plot.title = element_text(size = 8),
+    axis.title.y = element_text(size = 7)
+  )
+
+
+
+Association_longEth <- Association_structure_1 %>%
+  filter(Factor == "Ethnicity") %>%
+  pivot_longer(
+    cols = c(Total, Unique),
+    names_to = "Metric",
+    values_to = "Value"
+  )
+
+
+p2 <- Association_longEth %>%
+  mutate(
+    Group = factor(Group, levels = names(group_colors)),
+    Function = factor(Function, levels = c("PW", "EC", "KO"))
+  ) %>%
+  ggplot(aes(x = Value, y = Group, fill = Group)) +
+  
+  geom_col(width = 0.7) +
+  
+  facet_grid(Function ~ Metric+Factor, scales = "free_x") +
+  
+  scale_fill_manual(values = group_colors) +
+  
+  labs(
+    x = "Number of associations",
+    y = NULL,
+    title = "Genus–function (HAllA) association structure\nTotal vs unique significant associations (|ρ| ≥ 0.8, q < 0.05)"  ) +
+  
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(face = "bold"),
+    plot.title = element_text(size = 8),
+    axis.title.y = element_text(size = 7)
+  )
+
+
+
+Association_longGeo2 <- Association_structure_2 %>%
+  filter(Factor == "Geographic location") %>%
+  pivot_longer(
+    cols = c(Shared, Shifted),
+    names_to = "Metric",
+    values_to = "Value"
+  )
+
+
+
+group_colors <- c(
+  "Akha" = "gold1",
+  "Lahu" = "grey40",
+  "CM" = "coral1",
+  "CR" = "dodgerblue4"
+)
+
+
+p3 <- Association_longGeo2 %>%
+  mutate(
+    Group = factor(Group, levels = names(group_colors)),
+    Function = factor(Function, levels = c("PW", "EC", "KO"))
+  ) %>%
+  ggplot(aes(x = Value, y = Group, fill = Group)) +
+  
+  geom_col(width = 0.7) +
+  
+  facet_grid(Function ~ Metric+Factor, scales = "free_x") +
+  
+  scale_fill_manual(values = group_colors) +
+  
+  labs(
+    x = "Number of associations",
+    y = NULL,
+    title = "Genus–function (HAllA) association structure\nShared vs shifted significant associations (|ρ| ≥ 0.8, q < 0.05)"  ) +
+  
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(face = "bold"),
+    plot.title = element_text(size = 8),
+    axis.title.y = element_text(size = 7)
+  )
+
+
+
+
+
+Association_longEth2 <- Association_structure_2 %>%
+  filter(Factor == "Ethnicity") %>%
+  pivot_longer(
+    cols = c(Shared, Shifted),
+    names_to = "Metric",
+    values_to = "Value"
+  )
+
+
+
+group_colors <- c(
+  "Akha" = "gold1",
+  "Lahu" = "grey40",
+  "CM" = "coral1",
+  "CR" = "dodgerblue4"
+)
+
+
+p4 <- Association_longEth2 %>%
+  mutate(
+    Group = factor(Group, levels = names(group_colors)),
+    Function = factor(Function, levels = c("PW", "EC", "KO"))
+  ) %>%
+  ggplot(aes(x = Value, y = Group, fill = Group)) +
+  
+  geom_col(width = 0.7) +
+  
+  facet_grid(Function ~ Metric+Factor, scales = "free_x") +
+  
+  scale_fill_manual(values = group_colors) +
+  
+  labs(
+    x = "Number of associations",
+    y = NULL,
+    title = "Genus–function (HAllA) association structure\nShared vs shifted significant associations (|ρ| ≥ 0.8, q < 0.05)"  ) +
+  
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(face = "bold"),
+    plot.title = element_text(size = 8),
+    axis.title.y = element_text(size = 7)
+  )
+
+
+library(gridExtra)
+
+grid.arrange(
+  p1, p2,
+  p3, p4,
+  ncol = 2,
+  nrow = 2
+)
+
+
