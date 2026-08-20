@@ -302,4 +302,21 @@ Gut Microbiome and Metabolite Profiles Analysis
 
 
 
-                 
+                Normality
+                    ↓
+       Shapiro-Wilk in EACH group
+                    ↓
+       ┌────────────┴────────────┐
+       ↓                         ↓
+ all groups normal          ≥1 group non-normal
+       ↓                         ↓
+   Levene's test            Kruskal-Wallis
+       ↓
+ ┌─────┴─────┐
+ ↓           ↓
+equal      unequal
+variance   variance
+ ↓           ↓
+ANOVA     Welch ANOVA
+             ↓
+       Games-Howell
