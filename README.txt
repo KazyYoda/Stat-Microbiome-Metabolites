@@ -336,4 +336,4 @@ Any group clearly non-normal
 
 Normality cannot be adequately assessed
         │
-        └── Kruskal-Wallis / Review
+        └── Review: the test could not be performed as there were fewer than 3 unique values
