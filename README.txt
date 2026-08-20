@@ -320,3 +320,20 @@ variance   variance
 ANOVA     Welch ANOVA
              ↓
        Games-Howell
+
+
+
+
+All 3 groups normal
+        │
+        ├── Levene p > 0.05 → ANOVA
+        │
+        └── Levene p < 0.05 → Welch ANOVA
+
+Any group clearly non-normal
+        │
+        └── Kruskal-Wallis
+
+Normality cannot be adequately assessed
+        │
+        └── Kruskal-Wallis / Review
