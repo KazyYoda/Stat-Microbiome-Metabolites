@@ -324,16 +324,25 @@ ANOVA     Welch ANOVA
 
 
 
-All 3 groups normal
-        │
-        ├── Levene p > 0.05 → ANOVA
-        │
-        └── Levene p < 0.05 → Welch ANOVA
+                    Shapiro-Wilk
+                         │
+             ┌───────────┴───────────┐
+             │                       │
+       All 3 p > 0.05          Any p < 0.05
+             │                       │
+         Levene                  Kruskal-Wallis
+             │
+      ┌──────┴──────┐
+      │             │
+   p > 0.05       p < 0.05
+      │             │
+    ANOVA          Welch
+                    ANOVA
 
-Any group clearly non-normal
+If Shapiro = NA
         │
-        └── Kruskal-Wallis
-
-Normality cannot be adequately assessed
+        ├── Other groups show non-normality/heterogeneity
+        │       → Kruskal-Wallis
         │
-        └── Review: the test could not be performed as there were fewer than 3 unique values
+        └── All Shapiro = NA and no variance issue
+                → Review / exclude
