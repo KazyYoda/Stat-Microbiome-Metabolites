@@ -323,6 +323,18 @@ ANOVA     Welch ANOVA
 
 
 
+# Run the Shapiro-Wilk test on the ANOVA residuals
+ANOVA model
+     ↓
+Residuals
+     ↓
+Shapiro-Wilk 
+     ↓
+p > 0.05 → acceptable normality
+p < 0.05 → assumption questionable
+
+
+
 
                     Shapiro-Wilk
                          │
@@ -346,3 +358,7 @@ If Shapiro = NA
         │
         └── All Shapiro = NA and no variance issue
                 → Review / exclude
+
+
+
+
